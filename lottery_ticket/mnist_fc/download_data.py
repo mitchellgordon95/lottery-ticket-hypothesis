@@ -30,7 +30,7 @@ def download(location=locations.MNIST_LOCATION):
   save_restore.save_network(location, d)
 
 
-def main(unused_argv):
+def main():
   fire.Fire(download)
 
 if __name__ == '__main__':
