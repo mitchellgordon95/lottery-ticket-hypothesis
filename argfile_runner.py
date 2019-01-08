@@ -28,7 +28,7 @@ def run(runner, argfile):
     subprocess.call(['python', runner, flag])
 
 
-def main(unused_argv):
+def main():
   fire.Fire(run)
 
 if __name__ == '__main__':
