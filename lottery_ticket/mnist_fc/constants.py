@@ -28,8 +28,6 @@ HYPERPARAMETERS = {'layers': [(300, tf.nn.relu), (100, tf.nn.relu), (10, None)]}
 
 MNIST_LOCATION = locations.MNIST_LOCATION
 
-FASHIONMNIST_LOCATION = locations.FASHIONMNIST_LOCATION
-
 OPTIMIZER_FN = functools.partial(tf.train.GradientDescentOptimizer, .1)
 
 PRUNE_PERCENTS = {'layer0': .2, 'layer1': .2, 'layer2': .1}
