@@ -50,7 +50,7 @@ def save_network(filename, weights_dict):
   tf.gfile.MakeDirs(filename)
 
   for k, v in weights_dict.items():
-    with tf.gfile.FastGFile(os.path.join(filename, k + '.npy'), 'w') as fp:
+    with tf.gfile.GFile(os.path.join(filename, k + '.npy'), 'w') as fp:
       np.save(fp, v)
 
 
@@ -82,7 +82,7 @@ def restore_network(filename):
 
   for basename in tf.gfile.ListDirectory(filename):
     name = basename.split('.')[0]
-    with tf.gfile.FastGFile(os.path.join(filename, basename)) as fp:
+    with tf.gfile.GFile(os.path.join(filename, basename)) as fp:
       weights_dict[name] = np.load(fp)
 
   return weights_dict
