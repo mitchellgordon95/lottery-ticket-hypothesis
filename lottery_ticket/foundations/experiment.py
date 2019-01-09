@@ -21,17 +21,11 @@ from __future__ import print_function
 import numpy as np
 
 
-def experiment(train_once, prune_masks, iterations, presets=None):
+def run_experiment(experiment, iterations, presets=None):
   """Run the lottery ticket experiment for the specified number of iterations.
 
   Args:
-    train_once: A function that, when called with three arguments (pruning iteration number,
-      presets, masks), trains the model and returns the model's initial and final weights as dictionaries.
-    prune_masks: A function that, when called with two arguments (dictionary of
-      current masks, dictionary of final weights), returns a new dictionary of
-      masks that have been pruned. Each dictionary key is the name of a tensor
-      in the network; each value is a numpy array containing the values of the
-      tensor (1/0 values for mask, weights for the dictionary of final weights).
+    experiment: an object implementing ExperimentBase
     iterations: The number of pruning iterations to perform.
     presets: (optional) The presets to use for the first iteration of training.
       In the form of a dictionary where each key is the name of a tensor and
@@ -39,7 +33,7 @@ def experiment(train_once, prune_masks, iterations, presets=None):
       be initialized.
   """
   # Run once normally.
-  initial, final = train_once(0, presets=presets)
+  initial, final_weights = experiment.train_once(0, presets=presets)
 
   # Create the initial masks with no weights pruned.
   masks = {}
@@ -49,7 +43,7 @@ def experiment(train_once, prune_masks, iterations, presets=None):
   # Begin the training loop.
   for iteration in range(1, iterations + 1):
     # Prune the network.
-    masks = prune_masks(masks, final)
+    masks = experiment.prune_masks(masks, final_weights)
 
     # Train the network again.
-    _, final = train_once(iteration, presets=initial, masks=masks)
+    _, final_weights = train_once(iteration, presets=initial, masks=masks)

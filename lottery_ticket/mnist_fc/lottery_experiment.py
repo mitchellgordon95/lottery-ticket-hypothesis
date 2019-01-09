@@ -12,7 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""The lottery ticket experiment for Lenet 300-100 trained on MNIST."""
+"""Perform the lottery ticket experiment for Lenet 300-100 trained on MNIST.
+
+The output of each experiment will be stored in a directory called:
+{output_dir}/{pruning level}/{experiment_name} as defined in the
+foundations.paths module.
+
+Args:
+  output_dir: Parent directory for all output files.
+  mnist_location: The path to the NPZ file containing MNIST.
+  training_len: How long to train on each iteration.
+  iterations: How many iterative pruning steps to perform.
+  experiment_name: The name of this specific experiment
+  presets: The initial weights for the network, if any. Presets can come in
+    one of three forms:
+    * A dictionary of numpy arrays. Each dictionary key is the name of the
+      corresponding tensor that is to be initialized. Each value is a numpy
+      array containing the initializations.
+    * The string name of a directory containing one file for each
+      set of weights that is to be initialized (in the form of
+      foundations.save_restore).
+    * None, meaning the network should be randomly initialized.
+  permute_labels: Whether to permute the labels on the dataset.
+  train_order_seed: The random seed, if any, to be used to determine the
+    order in which training examples are shuffled before being presented
+    to the network.
+"""
+
 
 from __future__ import absolute_import
 from __future__ import division
@@ -28,52 +54,32 @@ from lottery_ticket.foundations import paths
 from lottery_ticket.foundations import pruning
 from lottery_ticket.foundations import save_restore
 from lottery_ticket.foundations import trainer
+from lottery_ticket.foundations.experiment_base import ExperimentBase
 from lottery_ticket.mnist_fc import constants
 
+class MnistExperiment(ExperimentBase):
+  def __init__(
+      self,
+      output_dir,
+      mnist_location,
+      permute_labels,
+      train_order_seed,
+      training_len,
+      experiment_name):
+    self.output_dir = output_dir
+    self.mnist_location = mnist_location
+    self.permute_labels = permute_labels
+    self.train_order_seed = train_order_seed
+    self.training_len = training_len
+    self.experiment_name = experiment_name
 
-def train(output_dir,
-          mnist_location=constants.MNIST_LOCATION,
-          training_len=constants.TRAINING_LEN,
-          iterations=30,
-          experiment_name='same_init',
-          presets=None,
-          permute_labels=False,
-          train_order_seed=None):
-  """Perform the lottery ticket experiment.
-
-  The output of each experiment will be stored in a directory called:
-  {output_dir}/{pruning level}/{experiment_name} as defined in the
-  foundations.paths module.
-
-  Args:
-    output_dir: Parent directory for all output files.
-    mnist_location: The path to the NPZ file containing MNIST.
-    training_len: How long to train on each iteration.
-    iterations: How many iterative pruning steps to perform.
-    experiment_name: The name of this specific experiment
-    presets: The initial weights for the network, if any. Presets can come in
-      one of three forms:
-      * A dictionary of numpy arrays. Each dictionary key is the name of the
-        corresponding tensor that is to be initialized. Each value is a numpy
-        array containing the initializations.
-      * The string name of a directory containing one file for each
-        set of weights that is to be initialized (in the form of
-        foundations.save_restore).
-      * None, meaning the network should be randomly initialized.
-    permute_labels: Whether to permute the labels on the dataset.
-    train_order_seed: The random seed, if any, to be used to determine the
-      order in which training examples are shuffled before being presented
-      to the network.
-  """
-
-  # A helper function that trains the network once according to the behavior
-  def train_once(iteration, presets=None, masks=None):
+  def train_once(self, iteration, presets=None, masks=None):
     tf.reset_default_graph()
     sess = tf.Session()
     dataset = dataset_mnist.DatasetMnist(
-        mnist_location,
-        permute_labels=permute_labels,
-        train_order_seed=train_order_seed)
+        self.mnist_location,
+        permute_labels=self.permute_labels,
+        train_order_seed=self.train_order_seed)
     input_tensor, label_tensor = dataset.placeholders
     model = model_fc.ModelFc(constants.HYPERPARAMETERS, input_tensor, label_tensor, presets=presets, masks=masks)
     params = {
@@ -86,20 +92,38 @@ def train(output_dir,
         dataset,
         model,
         constants.OPTIMIZER_FN,
-        training_len,
-        output_dir=paths.run(output_dir, iteration, experiment_name),
+        self.training_len,
+        output_dir=paths.run(self.output_dir, iteration, self.experiment_name),
         **params)
 
-  # Define a pruning function.
-  prune_masks = functools.partial(pruning.prune_by_percent,
-                                  constants.PRUNE_PERCENTS)
+  def prune_masks(masks, final_weights):
+    return pruning.prune_by_percent(constants.PRUNE_PERCENTS, masks, final_weights)
 
-  # Run the experiment.
-  experiment.experiment(
-      train_once,
-      prune_masks,
+  def stop_iterating(final_acc):
+    return False
+
+
+def main(
+    output_dir,
+    mnist_location=constants.MNIST_LOCATION,
+    training_len=constants.TRAINING_LEN,
+    iterations=30,
+    experiment_name='same_init',
+    presets=None,
+    permute_labels=False,
+    train_order_seed=None):
+  mnist_experiment = MnistExperiment(
+      output_dir,
+      mnist_location,
+      permute_labels=permute_labels,
+      train_order_seed=train_order_seed,
+      training_len=training_len,
+      experiment_name=experiment_name)
+
+  experiment.run_experiment(
+      mnist_experiment,
       iterations,
       presets=save_restore.standardize(presets))
 
 if __name__ == '__main__':
-  fire.Fire(train)
+  fire.Fire(main)
