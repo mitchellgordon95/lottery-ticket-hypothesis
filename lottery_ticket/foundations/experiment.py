@@ -19,22 +19,14 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-import tensorflow as tf
 
 
-def experiment(make_dataset, make_model, train_model, prune_masks, iterations,
-               presets=None):
+def experiment(train_once, prune_masks, iterations, presets=None):
   """Run the lottery ticket experiment for the specified number of iterations.
 
   Args:
-    make_dataset: A function that, when called with no arguments, will create an
-      object that descends from dataset_base.
-    make_model: A function that, when called with four arguments (input_tensor,
-      label_tensor, presets, masks), creates a model object that descends from
-      model_base. Presets and masks are optional.
-    train_model: A function that, when called with four arguments (session,
-      pruning iteration number, dataset, model), trains the model using the
-      dataset and returns the model's initial and final weights as dictionaries.
+    train_once: A function that, when called with three arguments (pruning iteration number,
+      presets, masks), trains the model and returns the model's initial and final weights as dictionaries.
     prune_masks: A function that, when called with two arguments (dictionary of
       current masks, dictionary of final weights), returns a new dictionary of
       masks that have been pruned. Each dictionary key is the name of a tensor
@@ -46,17 +38,6 @@ def experiment(make_dataset, make_model, train_model, prune_masks, iterations,
       each value is a numpy array of the values to which that tensor should
       be initialized.
   """
-
-  # A helper function that trains the network once according to the behavior
-  # determined internally by the train_model function.
-  def train_once(iteration, presets=None, masks=None):
-    tf.reset_default_graph()
-    sess = tf.Session()
-    dataset = make_dataset()
-    input_tensor, label_tensor = dataset.placeholders
-    model = make_model(input_tensor, label_tensor, presets=presets, masks=masks)
-    return train_model(sess, iteration, dataset, model)
-
   # Run once normally.
   initial, final = train_once(0, presets=presets)
 

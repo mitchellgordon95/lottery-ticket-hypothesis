@@ -20,6 +20,7 @@ from __future__ import print_function
 
 import functools
 import fire
+import tensorflow as tf
 from lottery_ticket.datasets import dataset_mnist
 from lottery_ticket.foundations import experiment
 from lottery_ticket.foundations import model_fc
@@ -64,30 +65,29 @@ def train(output_dir,
       order in which training examples are shuffled before being presented
       to the network.
   """
-  # Define model and dataset functions.
-  def make_dataset():
-    return dataset_mnist.DatasetMnist(
+
+  # A helper function that trains the network once according to the behavior
+  def train_once(iteration, presets=None, masks=None):
+    tf.reset_default_graph()
+    sess = tf.Session()
+    dataset = dataset_mnist.DatasetMnist(
         mnist_location,
         permute_labels=permute_labels,
         train_order_seed=train_order_seed)
-
-  make_model = functools.partial(model_fc.ModelFc, constants.HYPERPARAMETERS)
-
-  # Define a training function.
-  def train_model(sess, level, dataset, model):
+    input_tensor, label_tensor = dataset.placeholders
+    model = model_fc.ModelFc(constants.HYPERPARAMETERS, input_tensor, label_tensor, presets=presets, masks=masks)
     params = {
         'test_interval': 100,
         'save_summaries': True,
         'save_network': True,
     }
-
     return trainer.train(
         sess,
         dataset,
         model,
         constants.OPTIMIZER_FN,
         training_len,
-        output_dir=paths.run(output_dir, level, experiment_name),
+        output_dir=paths.run(output_dir, iteration, experiment_name),
         **params)
 
   # Define a pruning function.
@@ -96,9 +96,7 @@ def train(output_dir,
 
   # Run the experiment.
   experiment.experiment(
-      make_dataset,
-      make_model,
-      train_model,
+      train_once,
       prune_masks,
       iterations,
       presets=save_restore.standardize(presets))
