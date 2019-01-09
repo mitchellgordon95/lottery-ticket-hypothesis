@@ -21,6 +21,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import fire
 from lottery_ticket.datasets import dataset_mnist
 from lottery_ticket.foundations import model_fc
 from lottery_ticket.foundations import save_restore
@@ -77,3 +78,6 @@ def train(output_dir,
   params = {'test_interval': 100, 'save_summaries': True, 'save_network': True}
   trainer.train(tf.Session(), dataset, model, constants.OPTIMIZER_FN,
                 training_len, output_dir, **params)
+
+if __name__ == '__main__':
+  fire.Fire(train.train)

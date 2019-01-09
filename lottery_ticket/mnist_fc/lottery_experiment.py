@@ -19,6 +19,7 @@ from __future__ import division
 from __future__ import print_function
 
 import functools
+import fire
 from lottery_ticket.datasets import dataset_mnist
 from lottery_ticket.foundations import experiment
 from lottery_ticket.foundations import model_fc
@@ -101,3 +102,6 @@ def train(output_dir,
       prune_masks,
       iterations,
       presets=save_restore.standardize(presets))
+
+if __name__ == '__main__':
+  fire.Fire(train)

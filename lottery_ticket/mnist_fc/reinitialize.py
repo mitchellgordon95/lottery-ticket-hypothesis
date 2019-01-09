@@ -18,6 +18,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import fire
 from lottery_ticket.foundations import save_restore
 from lottery_ticket.mnist_fc import constants
 from lottery_ticket.mnist_fc import train as train_mnist
@@ -100,3 +101,6 @@ def train(output_dir,
       training_len=training_len,
       presets=presets,
       masks=masks)
+
+if __name__ == '__main__':
+  fire.Fire(train)
