@@ -1,0 +1,6 @@
+six
+fire
+tensorflow-gpu
+keras
+numpy
+absl-py
