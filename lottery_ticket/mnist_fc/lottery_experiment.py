@@ -96,10 +96,10 @@ class MnistExperiment(ExperimentBase):
         output_dir=paths.run(self.output_dir, iteration, self.experiment_name),
         **params)
 
-  def prune_masks(masks, final_weights):
+  def prune_masks(self, masks, final_weights):
     return pruning.prune_by_percent(constants.PRUNE_PERCENTS, masks, final_weights)
 
-  def stop_iterating(final_acc):
+  def stop_iterating(self, final_acc):
     return False
 
 
