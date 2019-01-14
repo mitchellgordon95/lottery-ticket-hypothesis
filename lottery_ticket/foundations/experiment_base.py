@@ -30,7 +30,7 @@ class ExperimentBase(object):
 
         Return: the model's initial and final weights as dictionaries, as well as the final train acc.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def prune_masks(masks, final_weights):
@@ -42,7 +42,7 @@ class ExperimentBase(object):
         key is the name of a tensor in the network; each value is a numpy array
         containing the values of the tensor (1/0 values for mask, weights for the dictionary of final weights).
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def stop_iterating(train_acc):
@@ -51,4 +51,4 @@ class ExperimentBase(object):
         Args:
             train_acc: the final train accuracy of the last iteration
         """
-        pass
+        raise NotImplementedError
