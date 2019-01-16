@@ -58,28 +58,16 @@ from lottery_ticket.foundations.experiment_base import ExperimentBase
 from lottery_ticket.mnist_fc import constants
 
 class MnistExperiment(ExperimentBase):
-  def __init__(
-      self,
-      output_dir,
-      mnist_location,
-      permute_labels,
-      train_order_seed,
-      training_len,
-      experiment_name):
+  def __init__(self, output_dir):
     self.output_dir = output_dir
-    self.mnist_location = mnist_location
-    self.permute_labels = permute_labels
-    self.train_order_seed = train_order_seed
-    self.training_len = training_len
-    self.experiment_name = experiment_name
 
   def train_once(self, iteration, presets=None, masks=None):
     tf.reset_default_graph()
     sess = tf.Session()
     dataset = dataset_mnist.DatasetMnist(
-        self.mnist_location,
-        permute_labels=self.permute_labels,
-        train_order_seed=self.train_order_seed)
+        constants.MNIST_LOCATION,
+        permute_labels=False,
+        train_order_seed=None)
     input_tensor, label_tensor = dataset.placeholders
     model = model_fc.ModelFc(constants.HYPERPARAMETERS, input_tensor, label_tensor, presets=presets, masks=masks)
     params = {
@@ -92,8 +80,8 @@ class MnistExperiment(ExperimentBase):
         dataset,
         model,
         constants.OPTIMIZER_FN,
-        self.training_len,
-        output_dir=paths.run(self.output_dir, iteration, self.experiment_name),
+        constants.TRAINING_LEN,
+        output_dir=paths.run(self.output_dir, iteration, 'same_init'),
         **params)
 
   def prune_masks(self, masks, final_weights):
@@ -103,28 +91,13 @@ class MnistExperiment(ExperimentBase):
     return False
 
 
-def main(
-    trials=20
-    mnist_location=constants.MNIST_LOCATION,
-    training_len=constants.TRAINING_LEN,
-    iterations=30,
-    experiment_name='same_init',
-    presets=None,
-    permute_labels=False,
-    train_order_seed=None):
-  for trial in range(1, trials+1):
-    mnist_experiment = MnistExperiment(
-        output_dir=constants.trial(trial),
-        mnist_location,
-        permute_labels=permute_labels,
-        train_order_seed=train_order_seed,
-        training_len=training_len,
-        experiment_name=experiment_name)
-
+def main():
+  for trial in range(1, 21):
+    mnist_experiment = MnistExperiment(output_dir=constants.trial(trial))
     experiment.run_experiment(
         mnist_experiment,
-        iterations,
-        presets=save_restore.standardize(presets))
+        iterations=30,
+        presets=save_restore.standardize(None))
 
 if __name__ == '__main__':
   fire.Fire(main)
