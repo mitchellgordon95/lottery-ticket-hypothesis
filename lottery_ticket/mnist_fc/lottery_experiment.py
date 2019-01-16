@@ -69,7 +69,8 @@ class MnistExperiment(ExperimentBase):
         permute_labels=False,
         train_order_seed=None)
     input_tensor, label_tensor = dataset.placeholders
-    model = model_fc.ModelFc(constants.HYPERPARAMETERS, input_tensor, label_tensor, presets=presets, masks=masks)
+    hyperparameters = {'layers': [(300, tf.nn.relu), (100, tf.nn.relu), (10, None)]}
+    model = model_fc.ModelFc(hyperparameters, input_tensor, label_tensor, presets=presets, masks=masks)
     params = {
         'test_interval': 100,
         'save_summaries': True,
@@ -79,13 +80,13 @@ class MnistExperiment(ExperimentBase):
         sess,
         dataset,
         model,
-        constants.OPTIMIZER_FN,
-        constants.TRAINING_LEN,
+        functools.partial(tf.train.GradientDescentOptimizer, .1),
+        ('iterations', 50000),
         output_dir=paths.run(self.output_dir, iteration, 'same_init'),
         **params)
 
   def prune_masks(self, masks, final_weights):
-    return pruning.prune_by_percent(constants.PRUNE_PERCENTS, masks, final_weights)
+    return pruning.prune_by_percent({'layer0': .2, 'layer1': .2, 'layer2': .1}, masks, final_weights)
 
   def stop_iterating(self, final_acc):
     return False

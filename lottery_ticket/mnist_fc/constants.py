@@ -21,33 +21,23 @@ from __future__ import print_function
 import functools
 import os
 from lottery_ticket.foundations import paths
-from lottery_ticket.mnist_fc import locations
 import tensorflow as tf
 
-HYPERPARAMETERS = {'layers': [(300, tf.nn.relu), (100, tf.nn.relu), (10, None)]}
+# MNIST is stored as a directory containing four npy files:
+#   x_train.npy, x_test.npy, y_train.npy, y_test.npy
+# See datasets/dataset_mnist.py for details.
 
-MNIST_LOCATION = locations.MNIST_LOCATION
+# Originally from https://s3.amazonaws.com/img-datasets/mnist.npz
 
-OPTIMIZER_FN = functools.partial(tf.train.GradientDescentOptimizer, .1)
+MNIST_LOCATION = 'data/mnist'
 
-PRUNE_PERCENTS = {'layer0': .2, 'layer1': .2, 'layer2': .1}
-
-TRAINING_LEN = ('iterations', 50000)
-
-EXPERIMENT_PATH = locations.EXPERIMENT_PATH
-
+EXPERIMENT_PATH = 'mnist_fc_data'
 
 def graph(category, filename):
   return os.path.join(EXPERIMENT_PATH, 'graphs', category, filename)
 
-
 def initialization(level):
   return os.path.join(EXPERIMENT_PATH, 'weights', str(level), 'initialization')
 
-
 def trial(trial_name):
   return paths.trial(EXPERIMENT_PATH, trial_name)
-
-
-def run(trial_name, level, experiment_name='same_init', run_id=''):
-  return paths.run(trial(trial_name), level, experiment_name, run_id)
