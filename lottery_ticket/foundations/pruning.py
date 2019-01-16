@@ -52,3 +52,36 @@ def prune_by_percent(percents, masks, final_weights):
     new_masks[k] = prune_by_percent_once(percent, masks[k], final_weights[k])
 
   return new_masks
+
+
+def prune_holistically(percent, masks, final_weights):
+  """Return new masks that involve pruning the smallest of the final weights.
+  Consider all masks together, not one at a time.
+
+  Args:
+    percent: percent of all weights to prune
+    masks: A dictionary containing the current masks. Keys are strings and
+      values are numpy arrays with values in {0, 1}.
+    final_weights: The weights at the end of the last training run. A
+      dictionary whose keys are strings and whose values are numpy arrays.
+
+  Returns:
+    A dictionary containing the newly-pruned masks.
+  """
+  # Get an array with all the non-masked weights
+  # TODO - this could be faster?
+  all_weights = np.array([])
+  for key, mask in masks.iteritems():
+    all_weights = np.concatenate([all_weights, np.abs(final_weights[key][mask == 1].flatten())])
+
+  # Determine the cutoff for weights to be pruned.
+  cutoff_index = np.round(percent * all_weights.size).astype(int)
+  cutoff = np.partition(all_weights, cutoff_index)[cutoff_index]
+
+  # Prune all weights below the cutoff.
+  new_masks = {}
+  for key, mask in masks.iteritems():
+    new_masks[key] = np.where(np.abs(final_weights[key]) <= cutoff, np.zeros(mask.shape), mask)
+
+  return new_masks
+
