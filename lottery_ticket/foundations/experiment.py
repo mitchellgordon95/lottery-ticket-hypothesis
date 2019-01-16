@@ -21,12 +21,12 @@ from __future__ import print_function
 import numpy as np
 
 
-def run_experiment(experiment, iterations, presets=None):
+def run_experiment(experiment, max_prune_iterations, presets=None):
   """Run the lottery ticket experiment for the specified number of iterations.
 
   Args:
     experiment: an object implementing ExperimentBase
-    iterations: The number of pruning iterations to perform.
+    max_num_prunes: The number of pruning iterations to perform.
     presets: (optional) The presets to use for the first iteration of training.
       In the form of a dictionary where each key is the name of a tensor and
       each value is a numpy array of the values to which that tensor should
@@ -41,8 +41,8 @@ def run_experiment(experiment, iterations, presets=None):
     masks[k] = np.ones(v.shape)
 
   # Begin the training loop.
-  for iteration in range(1, iterations + 1):
-    if experiment.stop_iterating(final_train_acc):
+  for iteration in range(1, max_prune_iterations + 1):
+    if experiment.stop_pruning(final_train_acc):
       break
 
     # Prune the network.

@@ -88,7 +88,7 @@ class MnistExperiment(ExperimentBase):
   def prune_masks(self, masks, final_weights):
     return pruning.prune_by_percent({'layer0': .2, 'layer1': .2, 'layer2': .1}, masks, final_weights)
 
-  def stop_iterating(self, final_acc):
+  def stop_pruning(self, final_acc):
     return False
 
 
@@ -97,7 +97,7 @@ def main():
     mnist_experiment = MnistExperiment(output_dir=constants.trial(trial))
     experiment.run_experiment(
         mnist_experiment,
-        iterations=30,
+        max_prune_iterations=30,
         presets=save_restore.standardize(None))
 
 if __name__ == '__main__':

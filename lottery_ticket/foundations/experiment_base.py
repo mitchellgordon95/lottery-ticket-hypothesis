@@ -45,9 +45,9 @@ class ExperimentBase(object):
         raise NotImplementedError
 
     @abstractmethod
-    def stop_iterating(self, train_acc):
+    def stop_pruning(self, train_acc):
         """
-        Should the experiment stop iterating before the total number of iterations is finished?
+        Should the experiment stop the prune iterations before the total number of iterations is finished?
         Args:
             train_acc: the final train accuracy of the last iteration
         """
