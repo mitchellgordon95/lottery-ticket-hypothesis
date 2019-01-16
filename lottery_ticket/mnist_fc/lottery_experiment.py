@@ -88,7 +88,7 @@ class MnistExperiment(ExperimentBase):
   def prune_masks(self, masks, final_weights):
     return pruning.prune_by_percent({'layer0': .2, 'layer1': .2, 'layer2': .1}, masks, final_weights)
 
-  def stop_pruning(self, final_acc):
+  def stop_pruning(self, train_acc):
     return False
 
 

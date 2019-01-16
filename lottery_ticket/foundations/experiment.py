@@ -33,7 +33,7 @@ def run_experiment(experiment, max_prune_iterations, presets=None):
       be initialized.
   """
   # Run once normally.
-  initial, final_weights, final_train_acc = experiment.train_once(0, presets=presets)
+  initial, final_weights, train_acc = experiment.train_once(0, presets=presets)
 
   # Create the initial masks with no weights pruned.
   masks = {}
@@ -42,11 +42,11 @@ def run_experiment(experiment, max_prune_iterations, presets=None):
 
   # Begin the training loop.
   for iteration in range(1, max_prune_iterations + 1):
-    if experiment.stop_pruning(final_train_acc):
+    if experiment.stop_pruning(train_acc):
       break
 
     # Prune the network.
     masks = experiment.prune_masks(masks, final_weights)
 
     # Train the network again.
-    _, final_weights, final_train_acc = experiment.train_once(iteration, presets=initial, masks=masks)
+    _, final_weights, train_acc = experiment.train_once(iteration, presets=initial, masks=masks)
