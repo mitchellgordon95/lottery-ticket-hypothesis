@@ -48,6 +48,10 @@ class ModelBase(object):
     self._validate_summaries = None
 
   @property
+  def accuracy(self):
+    return self._accuracy
+
+  @property
   def loss(self):
     return self._loss
 
@@ -132,7 +136,7 @@ class ModelBase(object):
     self._loss = tf.reduce_mean(
         tf.nn.softmax_cross_entropy_with_logits_v2(
             labels=label_placeholder, logits=output_logits))
-    accuracy = tf.reduce_mean(
+    self._accuracy = tf.reduce_mean(
         tf.cast(
             tf.equal(
                 tf.argmax(label_placeholder, 1),
@@ -141,13 +145,13 @@ class ModelBase(object):
     # Create summaries for loss and accuracy.
     self._train_summaries = [
         tf.summary.scalar('train_loss', self._loss),
-        tf.summary.scalar('train_accuracy', accuracy)
+        tf.summary.scalar('train_accuracy', self._accuracy)
     ]
     self._test_summaries = [
         tf.summary.scalar('test_loss', self._loss),
-        tf.summary.scalar('test_accuracy', accuracy)
+        tf.summary.scalar('test_accuracy', self._accuracy)
     ]
     self._validate_summaries = [
         tf.summary.scalar('validate_loss', self._loss),
-        tf.summary.scalar('validate_accuracy', accuracy)
+        tf.summary.scalar('validate_accuracy', self._accuracy)
     ]

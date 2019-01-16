@@ -44,7 +44,7 @@ def train(sess, dataset, model, optimizer_fn, training_len, output_dir,
 
   Returns:
       A dictionary containing the weights before training and the weights after
-      training.
+      training, as well as the trained model.
   """
   # Create initial session parameters.
   optimize = optimizer_fn().minimize(model.loss)
@@ -113,13 +113,14 @@ def train(sess, dataset, model, optimizer_fn, training_len, output_dir,
     """The main training loop encapsulated in a function."""
     iteration = 0
     epoch = 0
+    last_train_acc = None
     while True:
       sess.run(dataset.train_initializer)
       epoch += 1
 
       # End training if we have passed the epoch limit.
       if training_len[0] == 'epochs' and epoch > training_len[1]:
-        return
+        return last_train_acc
 
       # One training epoch.
       while True:
@@ -128,11 +129,13 @@ def train(sess, dataset, model, optimizer_fn, training_len, output_dir,
 
           # End training if we have passed the iteration limit.
           if training_len[0] == 'iterations' and iteration > training_len[1]:
-            return
+            return last_train_acc
 
           # Train.
-          records = sess.run([optimize] + model.train_summaries,
-                             {dataset.handle: train_handle})[1:]
+          results = sess.run([optimize, model.accuracy] + model.train_summaries,
+                             {dataset.handle: train_handle})
+          last_train_acc = results[1]
+          records = results[2:]
           record_summaries(iteration, records, train_file)
 
           # Collect test and validation data if applicable.
@@ -144,7 +147,7 @@ def train(sess, dataset, model, optimizer_fn, training_len, output_dir,
           break
 
   # Run the training loop.
-  training_loop()
+  final_train_acc = training_loop()
 
   # Clean up.
   if params.get('save_summaries', False):
@@ -157,4 +160,4 @@ def train(sess, dataset, model, optimizer_fn, training_len, output_dir,
   if params.get('save_network', False):
     save_restore.save_network(paths.final(output_dir), final_weights)
 
-  return initial_weights, final_weights
+  return initial_weights, final_weights, final_train_acc
