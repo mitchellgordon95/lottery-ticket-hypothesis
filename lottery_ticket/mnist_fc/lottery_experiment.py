@@ -104,7 +104,7 @@ class MnistExperiment(ExperimentBase):
 
 
 def main(
-    output_dir,
+    trials=20
     mnist_location=constants.MNIST_LOCATION,
     training_len=constants.TRAINING_LEN,
     iterations=30,
@@ -112,18 +112,19 @@ def main(
     presets=None,
     permute_labels=False,
     train_order_seed=None):
-  mnist_experiment = MnistExperiment(
-      output_dir,
-      mnist_location,
-      permute_labels=permute_labels,
-      train_order_seed=train_order_seed,
-      training_len=training_len,
-      experiment_name=experiment_name)
+  for trial in range(1, trials+1):
+    mnist_experiment = MnistExperiment(
+        output_dir=constants.trial(trial),
+        mnist_location,
+        permute_labels=permute_labels,
+        train_order_seed=train_order_seed,
+        training_len=training_len,
+        experiment_name=experiment_name)
 
-  experiment.run_experiment(
-      mnist_experiment,
-      iterations,
-      presets=save_restore.standardize(presets))
+    experiment.run_experiment(
+        mnist_experiment,
+        iterations,
+        presets=save_restore.standardize(presets))
 
 if __name__ == '__main__':
   fire.Fire(main)
