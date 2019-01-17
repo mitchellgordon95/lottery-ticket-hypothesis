@@ -38,6 +38,4 @@ def graph(category, filename):
 
 def initialization(level):
   return os.path.join(EXPERIMENT_PATH, 'weights', str(level), 'initialization')
-
-def trial(trial_name):
-  return paths.trial(EXPERIMENT_PATH, trial_name)
+ 

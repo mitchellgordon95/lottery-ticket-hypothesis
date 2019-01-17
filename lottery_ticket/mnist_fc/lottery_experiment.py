@@ -82,7 +82,7 @@ class MnistExperiment(ExperimentBase):
         model,
         functools.partial(tf.train.GradientDescentOptimizer, .1),
         ('iterations', 50000),
-        output_dir=paths.run(self.output_dir, iteration, 'same_init'),
+        output_dir=paths.run(self.output_dir, iteration),
         **params)
 
   def prune_masks(self, masks, final_weights):
@@ -94,7 +94,7 @@ class MnistExperiment(ExperimentBase):
 
 def main():
   for trial in range(1, 21):
-    mnist_experiment = MnistExperiment(output_dir=constants.trial(trial))
+    mnist_experiment = MnistExperiment(output_dir=paths.trial(constants.EXPERIMENT_PATH, trial, 'same_init'))
     experiment.run_experiment(
         mnist_experiment,
         max_prune_iterations=30,

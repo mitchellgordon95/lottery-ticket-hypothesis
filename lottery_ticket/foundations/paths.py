@@ -46,15 +46,26 @@ def summaries(parent_directory):
   return os.path.join(parent_directory, 'summaries')
 
 
-def trial(parent_directory, trial_name):
-  """The parent directory for a trial."""
-  return os.path.join(parent_directory, 'trial{}'.format(trial_name))
+def trial(parent_directory,
+          trial_name,
+          experiment_name,
+          run_id='' ):
+  """The parent directory for a trial.
+
+  Args:
+    parent_directory: The directory in which this directory should be created.
+    trial_name: The name of the current trial
+    experiment_name: The name of this specific experiment.
+    run_id: (optional) The number of this run (if the same experiment is being
+      run more than once).
+
+  Returns:
+    The path in which data about this trial should be stored.
+  """
+  return os.path.join(parent_directory, '{}{}'.format(experiment_name, run_id), 'trial{}'.format(trial_name))
 
 
-def run(parent_directory,
-        level,
-        experiment_name,
-        run_id=''):
+def run(parent_directory, level):
   """The name for a particular training run.
 
   Args:
@@ -67,5 +78,4 @@ def run(parent_directory,
   Returns:
     The path in which data about this run should be stored.
   """
-  return os.path.join(parent_directory, str(level),
-                      '{}{}'.format(experiment_name, run_id))
+  return os.path.join(parent_directory, str(level))
