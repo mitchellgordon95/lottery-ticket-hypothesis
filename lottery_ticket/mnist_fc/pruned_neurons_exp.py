@@ -60,6 +60,7 @@ from lottery_ticket.mnist_fc import constants
 class PrunedNeuronsExp(ExperimentBase):
   def __init__(self, output_dir):
     self.output_dir = output_dir
+    self.first_train_acc = None
 
   def train_once(self, iteration, presets=None, masks=None):
     tf.reset_default_graph()
@@ -86,17 +87,21 @@ class PrunedNeuronsExp(ExperimentBase):
         **params)
 
   def prune_masks(self, masks, final_weights):
-    pass
+    return pruning.prune_holistically(.75, masks, final_weights)
 
   def stop_pruning(self, train_acc):
-    pass
+    if not self.first_train_acc:
+      self.first_train_acc = train_acc
+      return False
+    else:
+      return train_acc < self.first_train_acc * .95
 
 def main():
   for trial in range(1, 21):
     mnist_experiment = PrunedNeuronsExp(output_dir=paths.trial(constants.EXPERIMENT_PATH, trial, 'pruned_neurons'))
     experiment.run_experiment(
         mnist_experiment,
-        max_prune_iterations=0,
+        max_prune_iterations=30,
         presets=save_restore.standardize(None))
 
 if __name__ == '__main__':
