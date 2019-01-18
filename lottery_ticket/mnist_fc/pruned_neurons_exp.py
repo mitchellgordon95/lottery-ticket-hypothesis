@@ -58,8 +58,8 @@ from lottery_ticket.foundations.experiment_base import ExperimentBase
 from lottery_ticket.mnist_fc import constants
 
 class PrunedNeuronsExp(ExperimentBase):
-  def __init__(self, output_dir):
-    self.output_dir = output_dir
+  def __init__(self, trial):
+    self.output_dir = paths.trial(constants.EXPERIMENT_PATH, trial, 'pruned_neurons')
     self.first_train_acc = None
 
   def train_once(self, iteration, presets=None, masks=None):
@@ -98,7 +98,7 @@ class PrunedNeuronsExp(ExperimentBase):
 
 def main():
   for trial in range(1, 21):
-    mnist_experiment = PrunedNeuronsExp(output_dir=paths.trial(constants.EXPERIMENT_PATH, trial, 'pruned_neurons'))
+    mnist_experiment = PrunedNeuronsExp(trial)
     experiment.run_experiment(
         mnist_experiment,
         max_prune_iterations=30,

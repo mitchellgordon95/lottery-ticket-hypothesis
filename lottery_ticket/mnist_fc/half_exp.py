@@ -57,9 +57,10 @@ from lottery_ticket.foundations import trainer
 from lottery_ticket.foundations.experiment_base import ExperimentBase
 from lottery_ticket.mnist_fc import constants
 
-class MnistExperiment(ExperimentBase):
+class HalfExp(ExperimentBase):
   def __init__(self, trial):
-    self.output_dir = paths.trial(constants.EXPERIMENT_PATH, trial, 'same_init')
+    self.output_dir = paths.trial(constants.EXPERIMENT_PATH, trial, 'half')
+    self.first_train_acc = None
 
   def train_once(self, iteration, presets=None, masks=None):
     tf.reset_default_graph()
@@ -69,7 +70,7 @@ class MnistExperiment(ExperimentBase):
         permute_labels=False,
         train_order_seed=None)
     input_tensor, label_tensor = dataset.placeholders
-    hyperparameters = {'layers': [(300, tf.nn.relu), (100, tf.nn.relu), (10, None)]}
+    hyperparameters = {'layers': [(30, tf.nn.relu), (20, tf.nn.relu), (10, None)]}
     model = model_fc.ModelFc(hyperparameters, input_tensor, label_tensor, presets=presets, masks=masks)
     params = {
         'test_interval': 100,
@@ -86,15 +87,18 @@ class MnistExperiment(ExperimentBase):
         **params)
 
   def prune_masks(self, masks, final_weights):
-    return pruning.prune_by_percent({'layer0': .2, 'layer1': .2, 'layer2': .1}, masks, final_weights)
+    return pruning.prune_holistically(.75, masks, final_weights)
 
   def stop_pruning(self, train_acc):
-    return False
-
+    if not self.first_train_acc:
+      self.first_train_acc = train_acc
+      return False
+    else:
+      return train_acc < self.first_train_acc * .95
 
 def main():
   for trial in range(1, 21):
-    mnist_experiment = MnistExperiment(trial)
+    mnist_experiment = HalfExp(trial)
     experiment.run_experiment(
         mnist_experiment,
         max_prune_iterations=30,
