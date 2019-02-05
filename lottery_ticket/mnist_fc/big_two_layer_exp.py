@@ -59,7 +59,7 @@ from lottery_ticket.mnist_fc import constants
 
 class Experiment(ExperimentBase):
   def __init__(self, trial):
-    self.output_dir = paths.trial(constants.EXPERIMENT_PATH, trial, 'pruned_neurons')
+    self.output_dir = paths.trial(constants.EXPERIMENT_PATH, trial, 'big_two_layer')
 
   def train_once(self, iteration, presets=None, masks=None):
     tf.reset_default_graph()
@@ -69,7 +69,7 @@ class Experiment(ExperimentBase):
         permute_labels=False,
         train_order_seed=None)
     input_tensor, label_tensor = dataset.placeholders
-    hyperparameters = {'layers': [(68, tf.nn.relu), (50, tf.nn.relu), (10, None)]}
+    hyperparameters = {'layers': [(1000, tf.nn.relu), (500, tf.nn.relu), (10, None)]}
     model = model_fc.ModelFc(hyperparameters, input_tensor, label_tensor, presets=presets, masks=masks)
     params = {
         'test_interval': 100,
@@ -86,10 +86,10 @@ class Experiment(ExperimentBase):
         **params)
 
   def prune_masks(self, masks, final_weights):
-    return pruning.prune_holistically(.75, masks, final_weights)
+    return pruning.prune_holistically(.50, masks, final_weights)
 
   def stop_pruning(self, train_acc):
-    return train_acc < .95
+    return train_acc < 0.95
 
 def main():
   for trial in range(1, 21):

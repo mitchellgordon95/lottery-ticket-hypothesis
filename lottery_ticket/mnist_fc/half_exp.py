@@ -57,10 +57,9 @@ from lottery_ticket.foundations import trainer
 from lottery_ticket.foundations.experiment_base import ExperimentBase
 from lottery_ticket.mnist_fc import constants
 
-class HalfExp(ExperimentBase):
+class Experiment(ExperimentBase):
   def __init__(self, trial):
     self.output_dir = paths.trial(constants.EXPERIMENT_PATH, trial, 'half')
-    self.first_train_acc = None
 
   def train_once(self, iteration, presets=None, masks=None):
     tf.reset_default_graph()
@@ -90,15 +89,11 @@ class HalfExp(ExperimentBase):
     return pruning.prune_holistically(.75, masks, final_weights)
 
   def stop_pruning(self, train_acc):
-    if not self.first_train_acc:
-      self.first_train_acc = train_acc
-      return False
-    else:
-      return train_acc < self.first_train_acc * .95
+    return train_acc < 0.95
 
 def main():
   for trial in range(1, 21):
-    mnist_experiment = HalfExp(trial)
+    mnist_experiment = Experiment(trial)
     experiment.run_experiment(
         mnist_experiment,
         max_prune_iterations=30,
