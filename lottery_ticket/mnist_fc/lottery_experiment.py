@@ -59,7 +59,7 @@ from lottery_ticket.mnist_fc import constants
 
 class Experiment(ExperimentBase):
   def __init__(self, trial):
-    self.output_dir = paths.trial(constants.EXPERIMENT_PATH, trial, 'same_init')
+    self.output_dir = paths.trial(paths.experiment(constants.EXPERIMENT_PATH, 'same_init'), trial)
 
   def train_once(self, iteration, presets=None, masks=None):
     tf.reset_default_graph()

@@ -69,3 +69,48 @@ class DatasetMnist(dataset_base.DatasetBase):
         (x_train, y_train),
         64, (x_test, y_test),
         train_order_seed=train_order_seed)
+
+class ConstructedDatasetMnist(dataset_base.DatasetBase):
+  """Looks like MNIST, but data is constructed randomly or deterministically."""
+
+  def __init__(self,
+               method='random_int',
+               flatten=True,
+               train_len=60000,
+               test_len=10000,
+               train_order_seed=None):
+    """Create an MNIST dataset object.
+
+    Args:
+      flatten: Whether to convert the 28x28 MNIST images into a 1-dimensional
+        vector with 784 entries.
+      train_order_seed: (optional) The random seed for shuffling the training
+        set.
+    """
+    if method == 'random_int':
+      x_train = np.random.randint(low=0, high=256, size=(train_len, 28, 28))
+      x_test = np.random.randint(low=0, high=256, size=(test_len, 28, 28))
+      y_train = np.random.randint(low=0, high=10, size=(train_len, 1))
+      y_test = np.random.randint(low=0, high=10, size=(test_len, 1))
+    else:
+      raise NotImplementedError
+
+
+    # Flatten x_train and x_test.
+    if flatten:
+      x_train = x_train.reshape((x_train.shape[0], -1))
+      x_test = x_test.reshape((x_test.shape[0], -1))
+
+    # Normalize x_train and x_test.
+    x_train = keras.utils.normalize(x_train).astype(np.float32)
+    x_test = keras.utils.normalize(x_test).astype(np.float32)
+
+    # Convert y_train and y_test to one-hot.
+    y_train = keras.utils.to_categorical(y_train)
+    y_test = keras.utils.to_categorical(y_test)
+
+    # Prepare the dataset.
+    super(ConstructedDatasetMnist, self).__init__(
+        (x_train, y_train),
+        64, (x_test, y_test),
+        train_order_seed=train_order_seed)

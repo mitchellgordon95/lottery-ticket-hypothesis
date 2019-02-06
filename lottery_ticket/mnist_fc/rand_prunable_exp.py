@@ -47,6 +47,7 @@ from __future__ import print_function
 import functools
 import fire
 import tensorflow as tf
+import os
 from lottery_ticket.datasets import dataset_mnist
 from lottery_ticket.foundations import experiment
 from lottery_ticket.foundations import model_fc
@@ -55,21 +56,22 @@ from lottery_ticket.foundations import pruning
 from lottery_ticket.foundations import save_restore
 from lottery_ticket.foundations import trainer
 from lottery_ticket.foundations.experiment_base import ExperimentBase
+from lottery_ticket.foundations.univa_grid import TaskRunner
 from lottery_ticket.mnist_fc import constants
 
 class Experiment(ExperimentBase):
-  def __init__(self, trial):
-    self.output_dir = paths.trial(paths.experiment(constants.EXPERIMENT_PATH, 'big_two_layer'), trial)
+  def __init__(self, train_len, trial):
+    self.train_len = train_len
+    experiment_dir = paths.experiment(constants.EXPERIMENT_PATH, 'rand_prunable')
+    train_len_dir = os.path.join(experiment_dir, 'train{}'.format(train_len))
+    self.output_dir = paths.trial(train_len_dir, trial)
 
   def train_once(self, iteration, presets=None, masks=None):
     tf.reset_default_graph()
     sess = tf.Session()
-    dataset = dataset_mnist.DatasetMnist(
-        constants.MNIST_LOCATION,
-        permute_labels=False,
-        train_order_seed=None)
+    dataset = dataset_mnist.ConstructedDatasetMnist(train_len=self.train_len)
     input_tensor, label_tensor = dataset.placeholders
-    hyperparameters = {'layers': [(1000, tf.nn.relu), (500, tf.nn.relu), (10, None)]}
+    hyperparameters = {'layers': [(300, tf.nn.relu), (100, tf.nn.relu), (10, None)]}
     model = model_fc.ModelFc(hyperparameters, input_tensor, label_tensor, presets=presets, masks=masks)
     params = {
         'test_interval': 100,
@@ -92,12 +94,14 @@ class Experiment(ExperimentBase):
     return train_acc < 0.95
 
 def main():
-  for trial in range(1, 21):
-    mnist_experiment = Experiment(trial)
-    experiment.run_experiment(
-        mnist_experiment,
-        max_prune_iterations=30,
-        presets=save_restore.standardize(None))
+  task_runner = TaskRunner()
+  task = lambda train_len, trial: experiment.run_experiment(
+      Experiment(train_len, trial),
+      max_prune_iterations=30,
+      presets=save_restore.standardize(None))
+  for train_len in [500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500]:
+    for trial in range(1, 10):
+      task_runner.do_task(task, train_len, trial)
 
 if __name__ == '__main__':
   fire.Fire(main)

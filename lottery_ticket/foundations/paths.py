@@ -45,24 +45,20 @@ def summaries(parent_directory):
   """The path where tensorflow summaries are stored."""
   return os.path.join(parent_directory, 'summaries')
 
+def experiment(parent_directory, experiment_name, run_id=''):
+  return os.path.join(parent_directory, '{}{}'.format(experiment_name, run_id))
 
-def trial(parent_directory,
-          trial_name,
-          experiment_name,
-          run_id='' ):
+def trial(parent_directory, trial_name):
   """The parent directory for a trial.
 
   Args:
     parent_directory: The directory in which this directory should be created.
     trial_name: The name of the current trial
-    experiment_name: The name of this specific experiment.
-    run_id: (optional) The number of this run (if the same experiment is being
-      run more than once).
 
   Returns:
     The path in which data about this trial should be stored.
   """
-  return os.path.join(parent_directory, '{}{}'.format(experiment_name, run_id), 'trial{}'.format(trial_name))
+  return os.path.join(parent_directory, 'trial{}'.format(trial_name))
 
 
 def run(parent_directory, level):
